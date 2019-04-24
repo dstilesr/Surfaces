@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include "testfunc.h"
 
-#define CUBESIZE 50
-#define GRIDPOINTS 100
+#define CUBESIZE 100
+#define GRIDPOINTS 150
 
 typedef double (*obj_func)(double x, double y, double z);
 
@@ -10,17 +10,14 @@ typedef double (*obj_func)(double x, double y, double z);
 /**
 * Auxiliary to search faces with x fixed
 */
-int search_x_face(obj_func f, int axis)
+int search_x_faces(obj_func f)
 {
-	double stepsize, temp, xval, i, j;
+	double stepsize, temp, i, j;
 	int retval;
 	
 	stepsize = 2 * CUBESIZE / GRIDPOINTS;
-	xval = -CUBESIZE;
-	if(axis > 0) xval = CUBESIZE;
 	
-	temp = f(xval, -CUBESIZE, -CUBESIZE);
-	
+	temp = f(-CUBESIZE, -CUBESIZE, -CUBESIZE);
 	if(temp > 0){
 		retval = 1;
 	}else if(temp < 0){
@@ -31,7 +28,11 @@ int search_x_face(obj_func f, int axis)
 	
 	for(i = -CUBESIZE; i <= CUBESIZE; i += stepsize){
 		for(j = -CUBESIZE; j <= CUBESIZE; j += stepsize){
-			temp = f(xval, i, j);
+			temp = f(-CUBESIZE, i, j);
+			if((temp >= 0 && retval < 0) || (temp <= 0 && retval > 0))
+				return 0;
+			
+			temp = f(CUBESIZE, i, j);
 			if((temp >= 0 && retval < 0) || (temp <= 0 && retval > 0))
 				return 0;
 		}
@@ -44,17 +45,14 @@ int search_x_face(obj_func f, int axis)
 /**
 * Auxiliary to search faces with y fixed
 */
-int search_y_face(obj_func f, int axis)
+int search_y_faces(obj_func f)
 {
-	double stepsize, temp, yval, i, j;
+	double stepsize, temp, i, j;
 	int retval;
 	
 	stepsize = 2 * CUBESIZE / GRIDPOINTS;
-	yval = -CUBESIZE;
-	if(axis > 0) yval = CUBESIZE;
 	
-	temp = f(-CUBESIZE, yval, -CUBESIZE);
-	
+	temp = f(-CUBESIZE, -CUBESIZE, -CUBESIZE);
 	if(temp > 0){
 		retval = 1;
 	}else if(temp < 0){
@@ -65,7 +63,11 @@ int search_y_face(obj_func f, int axis)
 	
 	for(i = -CUBESIZE; i <= CUBESIZE; i += stepsize){
 		for(j = -CUBESIZE; j <= CUBESIZE; j += stepsize){
-			temp = f(i, yval, j);
+			temp = f(i, -CUBESIZE, j);
+			if((temp >= 0 && retval < 0) || (temp <= 0 && retval > 0))
+				return 0;
+			
+			temp = f(i, CUBESIZE, j);
 			if((temp >= 0 && retval < 0) || (temp <= 0 && retval > 0))
 				return 0;
 		}
@@ -78,17 +80,14 @@ int search_y_face(obj_func f, int axis)
 /**
 * Auxiliary to search faces with z fixed
 */
-int search_z_face(obj_func f, int axis)
+int search_z_faces(obj_func f)
 {
-	double stepsize, temp, zval, i, j;
+	double stepsize, temp, i, j;
 	int retval;
 	
 	stepsize = 2 * CUBESIZE / GRIDPOINTS;
-	zval = -CUBESIZE;
-	if(axis > 0) zval = CUBESIZE;
 	
-	temp = f(-CUBESIZE, -CUBESIZE, zval);
-	
+	temp = f(-CUBESIZE, -CUBESIZE, -CUBESIZE);
 	if(temp > 0){
 		retval = 1;
 	}else if(temp < 0){
@@ -99,7 +98,11 @@ int search_z_face(obj_func f, int axis)
 	
 	for(i = -CUBESIZE; i <= CUBESIZE; i += stepsize){
 		for(j = -CUBESIZE; j <= CUBESIZE; j += stepsize){
-			temp = f(i, j, zval);
+			temp = f(i, j, -CUBESIZE);
+			if((temp >= 0 && retval < 0) || (temp <= 0 && retval > 0))
+				return 0;
+			
+			temp = f(i, j, CUBESIZE);
 			if((temp >= 0 && retval < 0) || (temp <= 0 && retval > 0))
 				return 0;
 		}
@@ -109,31 +112,6 @@ int search_z_face(obj_func f, int axis)
 }
 
 
-/**
-* Tests whether the zero set of a given function R^3 -> R
-*  intersects the given face of a cube (1,-1 for x axis,
-* 2,-2 for y, 3,-3 for z). Returns 1 if all values of f on the
-* cube face are positive, -1 if they are all negative,
-* and 0 if there are both positive and negative values.
-*/
-int search_face(obj_func f, int axis)
-{
-	int value;
-	if(axis == 1 || axis == -1){
-		value = search_x_face(f,axis);
-	}else if(axis == 2 || axis == -2){
-		value = search_y_face(f,axis);
-	}else if(axis == 3 || axis == -3){
-		value = search_z_face(f, axis);
-	}else{
-		goto error;
-	}
-	return value;
-	
-	error:
-		printf("Axis value must be one of 1,-1,2,-2,3,-3 but given value was %d\n", axis);
-		return 10;
-}
 
 /**
 * Tests whether the zero set of a given function R^3 -> R
@@ -143,27 +121,23 @@ int search_face(obj_func f, int axis)
 */
 int search_cube(obj_func f)
 {
-	int axes[] = {1,-1,2,-2,3,-3};
 	int retval, temp;
 	
-	retval = search_face(f, axes[0]);
+	retval = search_x_faces(f);
 	if(retval == 0) return 0;
 	
-	for(int i = 1; i < 6; i++){
-		temp = search_face(f, axes[i]);
-		
-		if(temp == 0){
-			return 0;
-		}else if((temp < 0 && retval > 0) || (temp > 0 && retval < 0)){
-			return 0;
-		}
-		
-	}
+	temp = search_y_faces(f);
+	if((temp >= 0 && retval < 0) || (temp <= 0 && retval > 0)) return 0;
+	
+	temp = search_z_faces(f);
+	if((temp >= 0 && retval < 0) || (temp <= 0 && retval > 0)) return 0;
 	
 	return retval;
 }
 
-
+/**
+* MAIN
+*/
 int main()
 {
 	int result = search_cube(testfunc);
