@@ -1,116 +1,50 @@
 #include <stdio.h>
 #include "testfunc.h"
 
-#define CUBESIZE 100
-#define GRIDPOINTS 150
+#define CUBESIZE 200
+#define GRIDPOINTS 400
+
+/**
+* Macro to test whether two numbers have equal sign and
+* return 0 if they do not.
+*/
+#define signtest(M,N) if(M * N <= 0){return 0;}
 
 typedef double (*obj_func)(double x, double y, double z);
 
 
 /**
-* Auxiliary to search faces with x fixed
+* Auxiliary to test points on the cube corresponding to i, j
 */
-int search_x_faces(obj_func f)
+int check_points(obj_func f, double i, double j)
 {
-	double stepsize, temp, i, j;
 	int retval;
-	
-	stepsize = 2 * CUBESIZE / GRIDPOINTS;
-	
-	temp = f(-CUBESIZE, -CUBESIZE, -CUBESIZE);
-	if(temp > 0){
-		retval = 1;
-	}else if(temp < 0){
-		retval = -1;
-	}else if(temp == 0){
+	double temp = f(-CUBESIZE, i, j);
+	if(temp == 0){
 		return 0;
+	}else if(temp > 0){
+		retval = 1;
+	}else{
+		retval = -1;
 	}
 	
-	for(i = -CUBESIZE; i <= CUBESIZE; i += stepsize){
-		for(j = -CUBESIZE; j <= CUBESIZE; j += stepsize){
-			temp = f(-CUBESIZE, i, j);
-			if((temp >= 0 && retval < 0) || (temp <= 0 && retval > 0))
-				return 0;
-			
-			temp = f(CUBESIZE, i, j);
-			if((temp >= 0 && retval < 0) || (temp <= 0 && retval > 0))
-				return 0;
-		}
-	}
+	temp = f(CUBESIZE, i, j);
+	signtest(temp,retval);
+	
+	temp = f(i, -CUBESIZE, j);
+	signtest(temp,retval);
+	
+	temp = f(i, CUBESIZE, j);
+	signtest(temp,retval);
+	
+	temp = f(i, j, -CUBESIZE);
+	signtest(temp,retval);
+	
+	temp = f(i, j, CUBESIZE);
+	signtest(temp,retval);
 	
 	return retval;
 }
-
-
-/**
-* Auxiliary to search faces with y fixed
-*/
-int search_y_faces(obj_func f)
-{
-	double stepsize, temp, i, j;
-	int retval;
-	
-	stepsize = 2 * CUBESIZE / GRIDPOINTS;
-	
-	temp = f(-CUBESIZE, -CUBESIZE, -CUBESIZE);
-	if(temp > 0){
-		retval = 1;
-	}else if(temp < 0){
-		retval = -1;
-	}else if(temp == 0){
-		return 0;
-	}
-	
-	for(i = -CUBESIZE; i <= CUBESIZE; i += stepsize){
-		for(j = -CUBESIZE; j <= CUBESIZE; j += stepsize){
-			temp = f(i, -CUBESIZE, j);
-			if((temp >= 0 && retval < 0) || (temp <= 0 && retval > 0))
-				return 0;
-			
-			temp = f(i, CUBESIZE, j);
-			if((temp >= 0 && retval < 0) || (temp <= 0 && retval > 0))
-				return 0;
-		}
-	}
-	
-	return retval;
-}
-
-
-/**
-* Auxiliary to search faces with z fixed
-*/
-int search_z_faces(obj_func f)
-{
-	double stepsize, temp, i, j;
-	int retval;
-	
-	stepsize = 2 * CUBESIZE / GRIDPOINTS;
-	
-	temp = f(-CUBESIZE, -CUBESIZE, -CUBESIZE);
-	if(temp > 0){
-		retval = 1;
-	}else if(temp < 0){
-		retval = -1;
-	}else if(temp == 0){
-		return 0;
-	}
-	
-	for(i = -CUBESIZE; i <= CUBESIZE; i += stepsize){
-		for(j = -CUBESIZE; j <= CUBESIZE; j += stepsize){
-			temp = f(i, j, -CUBESIZE);
-			if((temp >= 0 && retval < 0) || (temp <= 0 && retval > 0))
-				return 0;
-			
-			temp = f(i, j, CUBESIZE);
-			if((temp >= 0 && retval < 0) || (temp <= 0 && retval > 0))
-				return 0;
-		}
-	}
-	
-	return retval;
-}
-
 
 
 /**
@@ -121,16 +55,26 @@ int search_z_faces(obj_func f)
 */
 int search_cube(obj_func f)
 {
+	double i, j, stepsize, initval;
 	int retval, temp;
 	
-	retval = search_x_faces(f);
-	if(retval == 0) return 0;
+	stepsize = 2 * CUBESIZE / GRIDPOINTS;
 	
-	temp = search_y_faces(f);
-	if((temp >= 0 && retval < 0) || (temp <= 0 && retval > 0)) return 0;
+	initval = f(-CUBESIZE, -CUBESIZE, -CUBESIZE);
+	if(initval == 0){
+		return 0;
+	}else if(initval < 0){
+		retval = -1;
+	}else{
+		retval = 1;
+	}
 	
-	temp = search_z_faces(f);
-	if((temp >= 0 && retval < 0) || (temp <= 0 && retval > 0)) return 0;
+	for(i = -CUBESIZE; i <= CUBESIZE; i += stepsize){
+		for(j = -CUBESIZE; j <= CUBESIZE; j += stepsize){
+			temp = check_points(f,i,j);
+			signtest(temp, retval);
+		}
+	}
 	
 	return retval;
 }
