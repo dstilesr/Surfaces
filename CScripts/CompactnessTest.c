@@ -1,8 +1,10 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "testfunc.h"
 
-#define CUBESIZE 200
-#define GRIDPOINTS 400
+#define NDEBUG //Deactivate debugging macro
+#include "dbg.h"
+
 
 /**
 * Macro to test whether two numbers have equal sign and
@@ -16,10 +18,10 @@ typedef double (*obj_func)(double x, double y, double z);
 /**
 * Auxiliary to test points on the cube corresponding to i, j
 */
-int check_points(obj_func f, double i, double j)
+int check_points(obj_func f, double i, double j, double cubesize)
 {
 	int retval;
-	double temp = f(-CUBESIZE, i, j);
+	double temp = f(-cubesize, i, j);
 	if(temp == 0){
 		return 0;
 	}else if(temp > 0){
@@ -28,19 +30,19 @@ int check_points(obj_func f, double i, double j)
 		retval = -1;
 	}
 	
-	temp = f(CUBESIZE, i, j);
+	temp = f(cubesize, i, j);
 	signtest(temp,retval);
 	
-	temp = f(i, -CUBESIZE, j);
+	temp = f(i, -cubesize, j);
 	signtest(temp,retval);
 	
-	temp = f(i, CUBESIZE, j);
+	temp = f(i, cubesize, j);
 	signtest(temp,retval);
 	
-	temp = f(i, j, -CUBESIZE);
+	temp = f(i, j, -cubesize);
 	signtest(temp,retval);
 	
-	temp = f(i, j, CUBESIZE);
+	temp = f(i, j, cubesize);
 	signtest(temp,retval);
 	
 	return retval;
@@ -53,14 +55,15 @@ int check_points(obj_func f, double i, double j)
 * f on the cube are positive, -1 if they are all negative,
 * and 0 if there are both positive and negative values.
 */
-int search_cube(obj_func f)
+int search_cube(obj_func f, double cubesize, int gridpoints)
 {
 	double i, j, stepsize, initval;
 	int retval, temp;
 	
-	stepsize = 2 * CUBESIZE / GRIDPOINTS;
+	stepsize = 2 * cubesize / gridpoints;
+	debug("Stepsize is %f", stepsize);
 	
-	initval = f(-CUBESIZE, -CUBESIZE, -CUBESIZE);
+	initval = f(-cubesize, -cubesize, -cubesize);
 	if(initval == 0){
 		return 0;
 	}else if(initval < 0){
@@ -69,9 +72,9 @@ int search_cube(obj_func f)
 		retval = 1;
 	}
 	
-	for(i = -CUBESIZE; i <= CUBESIZE; i += stepsize){
-		for(j = -CUBESIZE; j <= CUBESIZE; j += stepsize){
-			temp = check_points(f,i,j);
+	for(i = -cubesize; i <= cubesize; i += stepsize){
+		for(j = -cubesize; j <= cubesize; j += stepsize){
+			temp = check_points(f, i, j, cubesize);
 			signtest(temp, retval);
 		}
 	}
@@ -82,9 +85,23 @@ int search_cube(obj_func f)
 /**
 * MAIN
 */
-int main()
+int main(int argc, char *argv[])
 {
-	int result = search_cube(testfunc);
+	int result, gridpoints;
+	double cubesize;
+	if(argc < 3){
+		printf("ERROR: Insufficient arguments!\nUSAGE: ./CompactnessTest cubesize gridpoints\n");
+		return -1;
+	}
+	
+	cubesize = atof(argv[1]);
+	gridpoints = atoi(argv[2]);
+	if(cubesize <= 0 || gridpoints <= 0){
+		printf("ERROR: Invalid arguments!\nCubesize and gridpoints must be positive.\n\tGridpoints must be an integer.\n");
+		return -1;
+	}
+	
+	result = search_cube(testfunc, cubesize, gridpoints);
 	if(result == -1){
 		printf("All values of f on the cube are negative.\n");
 	}else if(result == 1){
