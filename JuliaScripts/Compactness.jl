@@ -9,130 +9,50 @@ function searchcube(func::Function,
         gridpoints::Int64=200
     )
     
-    retval::Int64 = searchxfaces(func, size, gridpoints)
-	retval == 0 && return 0
+	grida::LinRange{Float64} = LinRange(-size,size,gridpoints)
+    gridb::LinRange{Float64} = copy(grida)
 	
-	temp::Int64 = searchyfaces(func, size, gridpoints)
-	if (retval > 0 && temp < 0) || (retval < 0 && temp > 0)
-		return 0
-	end
+	initval::Float64 = func(-size,-size,-size)
+	initval == 0.0 && return 0
 	
-	temp = searchzfaces(func, size, gridpoints)
-	if (retval > 0 && temp < 0) || (retval < 0 && temp > 0)
-		return 0
+	retval::Int64 = 1
+	if initval < 0.0
+        retval = -1
+    end
+	
+	temp::Int64 = 0
+	
+	for i in grida, j in gridb
+		temp = pointcheck(func, i, j, size)
+		temp * retval <= 0 && return 0
 	end
 	
 	return retval
 end
 
-"""Auxiliary to search cube faces with x fixed."""
-function searchxfaces(func::Function,
-                size::Float64=50.0,
-                gridpoints::Int64=200
-            )
-    grida::LinRange{Float64} = LinRange(-size,size,gridpoints)
-    gridb::LinRange{Float64} = copy(grida)
-    
-    retval::Int64 = 1
-    temp::Float64 = func(-size, -size, -size)
-    if temp < 0
-        retval = -1
-    elseif temp > 0
-        retval = 1
-    else
-        return 0
-    end
+"""Auxiliary to search points on the cube with coordinates i, j, +-size"""
+function pointcheck(func::Function, i::Float64, j::Float64, size::Float64)
+	val::Float64 = func(-size,i,j)
+	val == 0 && return 0
 	
-	for i in grida, j in gridb
-		temp = func(-size, i, j)
-		if (temp <= 0) && (retval > 0)
-			return 0
-		elseif (temp >= 0) && (retval < 0)
-			return 0
-		end
-		
-		temp = func(size, i, j)
-		if (temp <= 0) && (retval > 0)
-			return 0
-		elseif (temp >= 0) && (retval < 0)
-			return 0
-		end
-	end
-    
-    return retval
-end
-
-
-"""Auxiliary to search cube faces with y fixed."""
-function searchyfaces(func::Function,
-                size::Float64=50.0,
-                gridpoints::Int64=200
-            )
-    grida::LinRange{Float64} = LinRange(-size,size,gridpoints)
-    gridb::LinRange{Float64} = copy(grida)
-    
-    retval::Int64 = 1
-    temp::Float64 = func(-size, -size, -size)
-    if temp < 0
-        retval = -1
-    elseif temp > 0
-        retval = 1
-    else
-        return 0
-    end
+	temp::Float64 = func(size,i,j)
+	temp*val <= 0.0 && return 0
 	
-	for i in grida, j in gridb
-		temp = func(i, -size, j)
-		if (temp <= 0) && (retval > 0)
-			return 0
-		elseif (temp >= 0) && (retval < 0)
-			return 0
-		end
-		
-		temp = func(i, size, j)
-		if (temp <= 0) && (retval > 0)
-			return 0
-		elseif (temp >= 0) && (retval < 0)
-			return 0
-		end
-	end
-    
-    return retval
-end
-
-"""Auxiliary to search cube faces with z fixed."""
-function searchzfaces(func::Function,
-                size::Float64=50.0,
-                gridpoints::Int64=200
-            )
-    grida::LinRange{Float64} = LinRange(-size,size,gridpoints)
-    gridb::LinRange{Float64} = copy(grida)
-    
-    retval::Int64 = 1
-    temp::Float64 = func(-size, -size, -size)
-    if temp < 0
-        retval = -1
-    elseif temp > 0
-        retval = 1
-    else
-        return 0
-    end
+	temp = func(i,-size,j)
+	temp*val <= 0.0 && return 0
 	
-	for i in grida, j in gridb
-		temp = func(i, j, -size)
-		if (temp <= 0) && (retval > 0)
-			return 0
-		elseif (temp >= 0) && (retval < 0)
-			return 0
-		end
-		
-		temp = func(i, j, size)
-		if (temp <= 0) && (retval > 0)
-			return 0
-		elseif (temp >= 0) && (retval < 0)
-			return 0
-		end
+	temp = func(i,size,j)
+	temp*val <= 0.0 && return 0
+	
+	temp = func(i,j,-size)
+	temp*val <= 0.0 && return 0
+	
+	temp = func(i,j,size)
+	temp*val <= 0.0 && return 0
+	
+	if val > 0
+		return 1
+	else
+		return -1
 	end
-    
-    return retval
 end
