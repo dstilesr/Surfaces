@@ -30,7 +30,7 @@ function searchcube(func::Function,
 	return retval
 end
 
-
+"""Auxiliary to search points on the cube with coordinates i, j, +-size"""
 function pointcheck(func::Function, i::Float64, j::Float64, size::Float64)
 	val::Float64 = func(-size,i,j)
 	val == 0 && return 0
