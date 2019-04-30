@@ -10,9 +10,7 @@
 * Macro to test whether two numbers have equal sign and
 * return 0 if they do not.
 */
-#define signtest(M,N) if(M * N <= 0){\
-	debug("Sign changed: Value is %f", M);\
-	return 0;}
+#define signtest(M,N) if(M * N <= 0)return 0;
 
 typedef double (*obj_func)(double x, double y, double z);
 
@@ -62,10 +60,10 @@ int check_points(obj_func f, double i, double j, double cubesize)
 */
 int search_cube(obj_func f, double cubesize, int gridpoints)
 {
-	double i, j, stepsize, initval;
+	double i, j, initval;
 	int retval, temp;
 	
-	stepsize = 2 * cubesize / gridpoints;
+	const double stepsize = 2 * cubesize / gridpoints;
 	debug("Stepsize is %f", stepsize);
 	
 	initval = f(-cubesize, -cubesize, -cubesize);
