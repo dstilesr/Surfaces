@@ -12,7 +12,7 @@ function findprojectedtrajectory(field::VecField,
         tspan::Tuple{T,T}
         ) where {T <: AbstractFloat}
 		
-    odefunc(du, u, p, t) = findprojectedtrajectory(field
+    odefunc(du, u, p, t) = projectedvectorfield(field
 												   , gradientfield
 												   , u
 												  )
