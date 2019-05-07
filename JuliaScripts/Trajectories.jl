@@ -9,7 +9,7 @@ include("VectorFieldUtils.jl")
 function findprojectedtrajectory(field::VecField, 
         gradientfield::VecField,
         u0::Array{T,1},
-        tspan=(0.0,1.0)
+        tspan::Tuple{T,T}
         ) where {T <: AbstractFloat}
 		
     odefunc(du, u, p, t) = findprojectedtrajectory(field
