@@ -1,4 +1,4 @@
-# This is a program for finding umbilical points of a non-holonomic surface
+# This is a program for finding umbilical points of a surface given by implicit equation
 
 # for taking numerical derivatives
 using Calculus
