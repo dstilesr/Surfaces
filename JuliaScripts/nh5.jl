@@ -4,8 +4,6 @@ using Calculus
 
 using LinearAlgebra
 
-using Plots
-
 using DelimitedFiles
 
 f(x, y, z) = x^2 + 0.25*y^2 + z^2/9.0 - 1.0
