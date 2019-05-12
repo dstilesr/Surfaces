@@ -1,4 +1,6 @@
 # Faster: using eigenvalues to find principal curvatures
+# Save files to use with gnuplot
+# Interactive
 
 using Calculus
 
