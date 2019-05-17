@@ -35,7 +35,7 @@ function curveCauchy(curve::Array{Array{T,1},1}, ϵ::T=0.0001, start::Int64=10) 
 		if sqrt(dot(diff,diff)) < ϵ
 			done = true
 			converged = true
-		else if i == n
+		elseif i == n
 			done = true
 		else
 			i += 1
