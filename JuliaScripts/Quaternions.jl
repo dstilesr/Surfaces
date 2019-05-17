@@ -44,6 +44,13 @@ end
 """Conjugate a Quaternion"""
 conj(a::Quaternion{T}) where {T <: Real} = Quaternion{T}(a.scalar, -a.x, -a.y, -a.z);
 
+function conj!(a::Quaternion{T}) where {T <: Real}
+	a.scalar *= -1
+	a.x *= -1
+	a.y *= -1
+	a.z *= -1;
+end
+
 """Quaternion product"""
 *(a::Quaternion{T}, b::Quaternion{T}) where {T <: Real} = Quaternion{T}(
     a.scalar*b.scalar - a.x*b.x - a.y*b.y - a.z*b.z,
