@@ -41,13 +41,13 @@ Given a function f and a restriction g, searches for critical points of the
 lagrangian f + lambda * g and returns a vector with the indices of these 
 critical points.
 """
-function criticalindices(f, g, gridsize :: Float64 = 50.0, gridpoints :: Int64 = 5000)
+function criticalindices(f, g, gridsize :: Float64 = 50.0, gridpoints :: Int64 = 500)
     
     lag = lagrange(f,g)
     lagrangegradient = Calculus.gradient(lag)
     
     criticalindiceslagrange(lag, lagrangegradient, gridsize, gridpoints)
-end
+end;
 
 
 """
@@ -61,7 +61,7 @@ function criticalindiceslagrange(lag, lgrad, gridsize::Float64 = 50.0, gridpoint
     gridc::LinRange{Float64} = copy(grida)
     gridd::LinRange{Float64} = copy(grida)
     
-    scale :: Float64 = gridsize / gridpoints
+    scale :: Float64 = 4.5 * gridsize / gridpoints
     
     indices :: Vector{Int64} = []
     
@@ -74,14 +74,13 @@ function criticalindiceslagrange(lag, lgrad, gridsize::Float64 = 50.0, gridpoint
     end
     
     indices
-end
+end;
 
 
 """
-Returns true if the norm (squared) of the given vector is les than the scale
-coefficient.
+Returns true if the norm of the given vector is les than the scale coefficient.
 """
 function approximatelyzero(x :: Array{T,1}, scale :: T = 0.0001) where {T <: AbstractFloat}
-    normsq :: T = sum(x .^ 2)
+    normsq :: T = sum(map(abs, x))
     return normsq <= scale
-end
+end;
