@@ -41,22 +41,47 @@ Given a function f and a restriction g, searches for critical points of the
 lagrangian f + lambda * g and returns a vector with the indices of these 
 critical points.
 """
-function criticalindices(f, g, gridsize = 50, gridpoints :: Int64 = 5000)
+function criticalindices(f, g, gridsize :: Float64 = 50.0, gridpoints :: Int64 = 5000)
+    
+    lag = lagrange(f,g)
+    lagrangegradient = Calculus.gradient(lag)
+    
+    criticalindiceslagrange(lag, lagrangegradient, gridsize, gridpoints)
+end
+
+
+"""
+Given the lagrangian f + lambda * g of a function f and its retriction g as 
+well as the gradient of the lagrangian, searches for its critical points 
+and returns a vector with the indices of these critical points.
+"""
+function criticalindiceslagrange(lag, lgrad, gridsize::Float64 = 50.0, gridpoints :: Int64 = 5000)
     grida::LinRange{Float64} = LinRange(-gridsize, gridsize, gridpoints)
     gridb::LinRange{Float64} = copy(grida)
     gridc::LinRange{Float64} = copy(grida)
     gridd::LinRange{Float64} = copy(grida)
     
-    lag = lagrange(f,g)
+    scale :: Float64 = gridsize / gridpoints
+    
     indices :: Vector{Int64} = []
     
     for i in grida, j in gridb, k in gridc, l in gridd
-        grad = Calculus.gradient(lag, [i,j,k,l])
-        if grad ≈ [0.0, 0.0, 0.0, 0.0]
+        grad = lgrad([i,j,k,l])
+        if approximatelyzero(grad, scale)
             println("INFO: Critical point found at $([i,j,k,l])")
             append!(indices, hessianindex(lag, [i,j,k,l]))
         end
     end
     
     indices
+end
+
+
+"""
+Returns true if the norm (squared) of the given vector is les than the scale
+coefficient.
+"""
+function approximatelyzero(x :: Array{T,1}, scale :: T = 0.0001) where {T <: AbstractFloat}
+    normsq :: T = sum(x .^ 2)
+    return normsq <= scale
 end
